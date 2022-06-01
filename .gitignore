@@ -2,3 +2,5 @@ docs/
 Pipfile*
 *.dat
 *.png
+__pycache__/
+*_key*
