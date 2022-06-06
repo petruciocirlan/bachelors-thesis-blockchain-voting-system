@@ -4,3 +4,5 @@ Pipfile*
 *.png
 __pycache__/
 *_key*
+*.key
+packages/

@@ -18,8 +18,11 @@ class Ballot:
             Ballot.party_by_name[party["name"]] = party
             Ballot.party_by_abrv[party["abrv"]] = party
 
+        Ballot.party_count = len(Ballot.parties)
+
     @staticmethod
     def get_parties() -> list:
+        # TODO(@petru): have this check as decorator
         if not hasattr(Ballot, "parties"):
             Ballot.load()
         return Ballot.parties
@@ -42,6 +45,13 @@ class Ballot:
             return Ballot.party_by_abrv[abrv]
 
         return None
+
+    @staticmethod
+    def get_count():
+        if not hasattr(Ballot, "parties"):
+            Ballot.load()
+        return Ballot.party_count
+        
 
 
 if __name__ == "__main__":

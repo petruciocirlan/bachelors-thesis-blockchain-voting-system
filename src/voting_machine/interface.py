@@ -1,5 +1,3 @@
-import os
-from pkgutil import extend_path
 import tkinter as tk
 from typing import Any
 from PIL import ImageTk, Image
@@ -67,8 +65,9 @@ class MainApp(tk.Tk):
 
         self.qr_code = ImageTk.PhotoImage(img)
 
-    def encode_vote(self, data):
-        return self.voting_machine.encode_vote(data)
+    def encode_vote(self, vote_id):
+        self.encoded_vote, self.encoded_vote_hash = self.voting_machine.encode_vote(vote_id)
+        self.set_qr_code(self.encoded_vote_hash)
 
 
 class VotePage(tk.Frame):
@@ -93,8 +92,8 @@ class VotePage(tk.Frame):
             # print(event)
             print(f"Voted for: {Ballot.get_party(id=id)['name']} (id:{id})")
 
-            encoded_vote = controller.encode_vote(id)
-            controller.set_qr_code(encoded_vote)
+            controller.encode_vote(id)
+            # controller.set_qr_code()
 
             controller.show_frame(BallotQRPage)
 
@@ -106,7 +105,7 @@ class BallotQRPage(tk.Frame):
         tk.Frame.__init__(self, parent)
         self.controller = controller
 
-        label = tk.Label(self, text="SCANATI CODUL QR CU APLICATIA DE VOT\nPENTRU A PUTEA VERIFICA ULTERIOR CA VOTUL DVS.\nA FOST LUAT IN CALCUL",
+        label = tk.Label(self, text="SCANATI CODUL QR CU APLICATIA DE VOT\nPENTRU A PUTEA VERIFICA ULTERIOR CA\nVOTUL DVS. A FOST LUAT IN CALCUL",
                          width=50, height=5, background="gray", foreground="white")
         label.pack(side=tk.TOP)
 
@@ -116,11 +115,11 @@ class BallotQRPage(tk.Frame):
         bottom_frame.pack(side=tk.BOTTOM, fill="both", expand=True)
 
         btn = tk.Button(bottom_frame, text="TRIMITE VOT FARA POSIBILITATE\nDE VERIFICARE ULTERIOARA", width=30, height=5)
-        btn.pack(side=tk.LEFT, padx=20)
+        btn.pack(side=tk.LEFT, padx=20, pady=10)
         btn.bind('<Button-1>', lambda _ : print("Pressed [SKIP]"))
 
         btn = tk.Button(bottom_frame, text="AM SCANAT", width=30, height=5)
-        btn.pack(side=tk.RIGHT, padx=20)
+        btn.pack(side=tk.RIGHT, padx=20, pady=10)
         btn.bind('<Button-1>', lambda _ : print("Pressed [NEXT]"))
 
     def tkraise(self, aboveThis = None) -> None:
