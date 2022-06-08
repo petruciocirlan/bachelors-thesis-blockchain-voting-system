@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Vote signer</string>
+    <string name="qr_code_found">QR Code Found</string>
+</resources>

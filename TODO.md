@@ -5,10 +5,11 @@
 
 ### Mobile Application
     - Backend
-        - [    ] Create private/public key pair for user
+        - [DONE] Create private/public key pair for user
     - Frontend
-        - [    ] Display QR code
-        - [    ] Option to export private/public key pair
+        - [DONE] Scan QR code
+        - [DONE] Sign message
+        - [DONE] Display QR code
         - [    ] Option to remember tx id
 
 
@@ -18,10 +19,10 @@
 ### Voting machine
 
     - [DONE] Voting ballot
-    - [    ] Encrypt choices
+    - [DONE] Encrypt choices
     - [DONE] Create QR code
     - [DONE] Use webcam to scan for QR code
-    - [    ] Validate scanned QR code
+    - [    ] Validate scanned QR code (?)
     - [    ] Create transaction
     - [    ] Send transaction to blockchain
 
@@ -45,5 +46,6 @@
 
 ## Maybe later
 
+    - Option to export private/public key pair
     - Non-Interactive Zero Knowledge proof (NIZK)
-    - Check NIZK
+        - Check NIZK
