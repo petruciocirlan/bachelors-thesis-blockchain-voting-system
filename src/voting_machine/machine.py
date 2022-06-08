@@ -19,23 +19,23 @@ class VotingMachine:
     def __init__(self) -> None:
         # TODO(@petru): add logger
 
+        self.nonce = 0
+        self.HE = Pyfhel(
+            context_params={'scheme': 'bfv', 'n': 2**14, 't_bits': 24, 'sec': 256})
+
         with open("machine_key.pub") as fd:
             self.public_key = RSA.import_key(fd.read())
         with open("machine_key") as fd:
             self.private_key = RSA.import_key(fd.read())
 
-        self.nonce = 0
-        self.HE = Pyfhel(
-            context_params={'scheme': 'bfv', 'n': 2**14, 't_bits': 24, 'sec': 256})
-
         keys_dir_name = "keys"
 
         with open(f"{keys_dir_name}/pub.key", "rb") as fd:
             self.HE.from_bytes_public_key(base64.b64decode(fd.read()))
-        # with open(f"{keys_dir_name}/sec.key", "rb") as fd:
-        #     self.HE.from_bytes_secret_key(base64.b64decode(fd.read()))
         with open(f"{keys_dir_name}/relin.key", "rb") as fd:
             self.HE.from_bytes_relin_key(base64.b64decode(fd.read()))
+        # with open(f"{keys_dir_name}/sec.key", "rb") as fd:
+        #     self.HE.from_bytes_secret_key(base64.b64decode(fd.read()))
 
         # Save & restore everything into/from files
         # ---------------------------
@@ -76,7 +76,8 @@ class VotingMachine:
         for obj in barcode:
             barcodeData = obj.data.decode("utf-8")
             barcodeType = obj.type
-            string = "Data " + str(barcodeData) + " | Type " + str(barcodeType)
+            # string = "Data " + str(barcodeData) + " | Type " + str(barcodeType)
+            string = "DETECTED!"
 
             if frame is not None:
                 points = obj.polygon
@@ -86,8 +87,8 @@ class VotingMachine:
                 cv2.polylines(image, [pts], True, (0, 255, 0), 3)
                 cv2.putText(frame, string, (x, y),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 0, 0), 2)
-                print("[WEBCAM] Barcode: "+barcodeData +
-                      " | Type: "+barcodeType)
+                # print("[WEBCAM] Barcode: "+barcodeData +
+                #       " | Type: "+barcodeType)
 
             return barcodeData
 
@@ -118,6 +119,7 @@ class VotingMachine:
         hash_object = Crypto.Hash.SHA512.new()
         hash_object.update(ctxt_bytes)
         signature = signer.sign(hash_object)
+        signature = base64.b64encode(signature)
 
         print(f"Signature length: {len(signature)}")
 
