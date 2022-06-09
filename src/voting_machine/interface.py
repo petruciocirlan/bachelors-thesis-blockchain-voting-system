@@ -1,3 +1,4 @@
+import base64
 import time
 
 from PIL import ImageTk, Image
@@ -25,7 +26,7 @@ class MainApp(tk.Tk):
         self.voting_machine = VotingMachine()
 
         container = tk.Frame(self)
-        container.pack(side="top", fill="both", expand=True)
+        container.pack(side="top", fill="both")
 
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
@@ -35,7 +36,7 @@ class MainApp(tk.Tk):
 
         # iterating through a tuple consisting
         # of the different page layouts
-        for F in (VotePage, BallotQRPage, ScanQRPage):
+        for F in (VotePage, BallotQRPage, ScanQRPage, SucessPage):
 
             frame = F(container, self)
 
@@ -50,7 +51,7 @@ class MainApp(tk.Tk):
 
     # to display the current frame passed as
     # parameter
-    def show_frame(self, cont, *args):
+    def show_frame(self, cont):
         frame = self.frames[cont]
         frame.tkraise()
 
@@ -67,20 +68,28 @@ class MainApp(tk.Tk):
         self.qr_code = ImageTk.PhotoImage(img)
 
     def encode_vote(self, vote_id):
-        self.encoded_vote, self.encoded_vote_hash = self.voting_machine.encode_vote(
+        self.encrypted_vote, self.machine_signature = self.voting_machine.encode_vote(
             vote_id)
-        self.set_qr_code(self.encoded_vote_hash)
+        data = base64.b64encode(self.machine_signature)
+        self.set_qr_code(data)
+
+    def send_vote(self, voter_signature, voter_certificate):
+        voter_signature = base64.b64decode(voter_signature)
+        voter_certificate = base64.b64decode(voter_certificate)
+        
+        self.voting_machine.vote(
+            self.encrypted_vote, self.machine_signature, voter_signature, voter_certificate)
 
 
 class VotePage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
 
-        self.pack(fill="both", expand=True)
+        self.pack(fill="both")
 
         label = tk.Label(self, text="INTRODUCETI VOTUL", width=100,
                          height=5, background="gray", foreground="white")
-        label.pack(side=tk.TOP, fill="both", expand=True)
+        label.pack(side=tk.TOP, fill="both")
 
         parties = Ballot.get_parties()
         for party in parties:
@@ -115,7 +124,7 @@ class BallotQRPage(tk.Frame):
         self.canvas = None
 
         bottom_frame = tk.Frame(self)
-        bottom_frame.pack(side=tk.BOTTOM, fill="both", expand=True)
+        bottom_frame.pack(side=tk.BOTTOM, fill="both")
 
         btn = tk.Button(
             bottom_frame, text="TRIMITE VOT FARA POSIBILITATE\nDE VERIFICARE ULTERIOARA", width=30, height=5)
@@ -148,18 +157,18 @@ class ScanQRPage(tk.Frame):
                          width=100, height=5, background="gray", foreground="white")
         label.pack(side=tk.TOP)
 
+        self.bottom_frame = tk.Frame(self)
+        self.bottom_frame.pack(side=tk.BOTTOM, fill="both", pady=10)
+
         self.cam = None
 
     def tkraise(self, aboveThis=None) -> None:
         super().tkraise(aboveThis)
 
-        bottom_frame = tk.Frame(self)
-        bottom_frame.pack(side=tk.BOTTOM, fill="both", expand=True, pady=10)
-
         label = None
 
         cap = cv2.VideoCapture(0)
-        print("[WEBCAM] Scanning for QR code...")
+        print("[SCANNER] Scanning for QR code...")
         while True:
             ret, frame = cap.read()
             data = VotingMachine.decoder(frame, frame)
@@ -170,7 +179,7 @@ class ScanQRPage(tk.Frame):
             img = ImageTk.PhotoImage(img)
 
             if label is None:
-                label = tk.Label(bottom_frame, image=img)
+                label = tk.Label(self.bottom_frame, image=img)
             else:
                 label.config(image=img)
 
@@ -180,10 +189,29 @@ class ScanQRPage(tk.Frame):
             self.controller.update()
             time.sleep(0.01)
 
-            # TODO(@petru): validate and sign data (transaction)
             if data is not None:
-                print(data)
+                print("[SCANNER] Found QR Code!")
+                self.controller.send_vote(*data.split("|"))
+                self.controller.show_frame(SucessPage)
+                label.destroy()
                 return
+
+
+class SucessPage(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+
+        label = tk.Label(self, text="VOTUL A FOST INREGISTRAT CU SUCCES!", width=100,
+                         height=5, background="gray", foreground="white")
+        label.pack(side=tk.TOP, fill="both")
+
+        # bottom_frame = tk.Frame(self)
+        # bottom_frame.pack(side=tk.BOTTOM, fill="both")
+
+        btn = tk.Button(self, text="RESET", width=50, height=10)
+        btn.pack(anchor=tk.CENTER)
+        btn.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
+        btn.bind('<Button-1>', lambda _: controller.show_frame(VotePage))
 
 
 if __name__ == "__main__":

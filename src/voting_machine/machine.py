@@ -1,10 +1,10 @@
-# import hashlib
 import base64
+from hashlib import md5
+import hashlib
 
 from Crypto.Signature import pkcs1_15
-# import Crypto.Signature
-import Crypto.Hash
 from Crypto.PublicKey import RSA
+import Crypto.Hash
 from Pyfhel import Pyfhel, PyCtxt
 import pyzbar.pyzbar as pyzbar
 from PIL import Image
@@ -119,7 +119,6 @@ class VotingMachine:
         hash_object = Crypto.Hash.SHA512.new()
         hash_object.update(ctxt_bytes)
         signature = signer.sign(hash_object)
-        signature = base64.b64encode(signature)
 
         print(f"Signature length: {len(signature)}")
 
@@ -129,6 +128,17 @@ class VotingMachine:
         ciphertext = PyCtxt.from_bytes(data)
         plaintext = self.HE.decrypt(ciphertext)
         print(plaintext)
+
+    def vote(self, encrypted_vote : bytes, machine_signature : bytes, voter_signature : bytes, voter_certificate : bytes):
+        print("[VOTER SIGNATURE] MD5:", md5(voter_signature).hexdigest())
+        print("[VOTER CERTIFICATE] MD5:", md5(voter_certificate).hexdigest())
+
+        public_key = RSA.import_key(voter_certificate)
+        try:
+            pkcs1_15.new(public_key).verify(Crypto.Hash.SHA256.new(machine_signature), voter_signature)
+            print("[VOTER SIGNATURE] Is valid!")
+        except ValueError:
+            print("[VOTER SIGNATURE] Is INVALID!")
 
 
 if __name__ == "__main__":

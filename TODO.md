@@ -22,7 +22,7 @@
     - [DONE] Encrypt choices
     - [DONE] Create QR code
     - [DONE] Use webcam to scan for QR code
-    - [    ] Validate scanned QR code (?)
+    - [DONE] Validate scanned QR code (?)
     - [    ] Create transaction
     - [    ] Send transaction to blockchain
 

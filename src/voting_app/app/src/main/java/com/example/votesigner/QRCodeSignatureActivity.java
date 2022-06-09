@@ -23,6 +23,9 @@ public class QRCodeSignatureActivity extends AppCompatActivity {
 
         Bundle extras = getIntent().getExtras();
         String signature = extras.getString("signature");
+        String publicKey = extras.getString("publicKey");
+
+        String data = signature + "|" + publicKey;
 
         Button signVoteButton = findViewById(R.id.activity_qr_code_ExitButton);
         signVoteButton.setText("Please show this QR Code to the scanner.");
@@ -35,7 +38,7 @@ public class QRCodeSignatureActivity extends AppCompatActivity {
         ImageView imageView = findViewById(R.id.activity_qr_code_QRCode);
 
         try {
-            Bitmap bitmap = TextToImageEncode(signature);
+            Bitmap bitmap = TextToImageEncode(data);
 
             imageView.setImageBitmap(bitmap);
 
