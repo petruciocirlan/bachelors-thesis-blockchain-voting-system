@@ -6,6 +6,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.MultiFormatWriter;
@@ -28,7 +29,7 @@ public class QRCodeSignatureActivity extends AppCompatActivity {
         String data = signature + "|" + publicKey;
 
         Button signVoteButton = findViewById(R.id.activity_qr_code_ExitButton);
-        signVoteButton.setText("Please show this QR Code to the scanner.");
+        signVoteButton.setText(R.string.show_code_to_scanner);
 //        signVoteButton.setOnClickListener(v -> {
 //            finish();
 //            System.exit(0);
@@ -72,7 +73,7 @@ public class QRCodeSignatureActivity extends AppCompatActivity {
             for (int x = 0; x < bitMatrixWidth; x++) {
 
                 pixels[offset + x] = bitMatrix.get(x, y) ?
-                        getResources().getColor(R.color.black):getResources().getColor(R.color.white);
+                        ContextCompat.getColor(this, R.color.black):ContextCompat.getColor(this, R.color.white);
             }
         }
         Bitmap bitmap = Bitmap.createBitmap(bitMatrixWidth, bitMatrixHeight, Bitmap.Config.ARGB_4444);

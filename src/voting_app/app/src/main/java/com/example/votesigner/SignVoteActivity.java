@@ -27,7 +27,6 @@ import java.security.Signature;
 import java.security.SignatureException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
-import java.security.spec.ECGenParameterSpec;
 
 public class SignVoteActivity extends AppCompatActivity {
     private String vote;
@@ -45,7 +44,7 @@ public class SignVoteActivity extends AppCompatActivity {
         signVote();
 
         Button signVoteButton = findViewById(R.id.activity_sign_vote_signButton);
-        signVoteButton.setText("Sign Vote");
+        signVoteButton.setText(R.string.sign_vote);
         signVoteButton.setOnClickListener(v -> {
             Toast.makeText(getApplicationContext(), vote, Toast.LENGTH_SHORT).show();
             Log.i(MainActivity.class.getSimpleName(), "Vote signed!");
@@ -125,14 +124,14 @@ public class SignVoteActivity extends AppCompatActivity {
         return Base64.decode(vote.getBytes(StandardCharsets.UTF_8), Base64.DEFAULT);
     }
 
-    private static final char[] HEX_ARRAY = "0123456789ABCDEF".toCharArray();
-    public static String bytesToHex(byte[] bytes) {
-        char[] hexChars = new char[bytes.length * 2];
-        for (int j = 0; j < bytes.length; j++) {
-            int v = bytes[j] & 0xFF;
-            hexChars[j * 2] = HEX_ARRAY[v >>> 4];
-            hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F];
-        }
-        return new String(hexChars);
-    }
+//    private static final char[] HEX_ARRAY = "0123456789ABCDEF".toCharArray();
+//    public static String bytesToHex(byte[] bytes) {
+//        char[] hexChars = new char[bytes.length * 2];
+//        for (int j = 0; j < bytes.length; j++) {
+//            int v = bytes[j] & 0xFF;
+//            hexChars[j * 2] = HEX_ARRAY[v >>> 4];
+//            hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F];
+//        }
+//        return new String(hexChars);
+//    }
 }

@@ -6,9 +6,9 @@ from Crypto.Signature import pkcs1_15
 from Crypto.PublicKey import RSA
 import Crypto.Hash
 from Pyfhel import Pyfhel, PyCtxt
-import pyzbar.pyzbar as pyzbar
-from PIL import Image
 import numpy as np
+from PIL import Image
+import pyzbar.pyzbar as pyzbar
 import qrcode
 import cv2
 
@@ -77,20 +77,39 @@ class VotingMachine:
             barcodeData = obj.data.decode("utf-8")
             barcodeType = obj.type
             # string = "Data " + str(barcodeData) + " | Type " + str(barcodeType)
-            string = "DETECTED!"
+            # print(barcodeData)
+            data = [x.strip() for x in barcodeData.split('|')]
+            # print(data)
+
+            try:
+                assert len(data) == 2, "data should contain exactly the signature and certificate of voter"
+                voter_signature = base64.b64decode(data[0])
+                voter_certificate = base64.b64decode(data[1])
+
+                is_valid = True
+                string = "DETECTED!"
+                color = (0, 255, 0)
+            except:
+                is_valid = False
+                string = "INVALID!"
+                color = (0, 0, 255)
 
             if frame is not None:
                 points = obj.polygon
                 (x, y, w, h) = obj.rect
                 pts = np.array(points, np.int32)
                 pts = pts.reshape((-1, 1, 2))
-                cv2.polylines(image, [pts], True, (0, 255, 0), 3)
-                cv2.putText(frame, string, (x, y),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 0, 0), 2)
+                cv2.polylines(image, [pts], True, color, 3)
+                cv2.putText(frame, string, (x+50, y-5),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.8, color, 2)
                 # print("[WEBCAM] Barcode: "+barcodeData +
                 #       " | Type: "+barcodeType)
 
-            return barcodeData
+            if is_valid:
+                return voter_signature, voter_certificate
+            else:
+                return None, None
+        return None, None
 
     @staticmethod
     def scan_qr_code():
@@ -107,38 +126,44 @@ class VotingMachine:
             if code == ord('q'):
                 break
 
-    def encode_vote(self, vote_id):
+    def encode_vote(self, vote_id : int):
         arr = np.zeros(Ballot.get_count())
         arr[vote_id] = 1
         # arr = np.array([1])
 
         ciphertext = self.HE.encrypt(arr)
-        ctxt_bytes = ciphertext.to_bytes() # (compr_mode='zlib')
+        encrypted_vote = ciphertext.to_bytes() # (compr_mode='zlib')
 
         signer = pkcs1_15.new(self.private_key)
-        hash_object = Crypto.Hash.SHA512.new()
-        hash_object.update(ctxt_bytes)
+        hash_object = Crypto.Hash.SHA512.new(data=encrypted_vote)
         signature = signer.sign(hash_object)
+        vote_digest = hash_object.digest()
 
-        print(f"Signature length: {len(signature)}")
-
-        return ctxt_bytes, signature
+        return encrypted_vote, signature, vote_digest
 
     def decode_vote(self, data):
         ciphertext = PyCtxt.from_bytes(data)
         plaintext = self.HE.decrypt(ciphertext)
         print(plaintext)
 
-    def vote(self, encrypted_vote : bytes, machine_signature : bytes, voter_signature : bytes, voter_certificate : bytes):
-        print("[VOTER SIGNATURE] MD5:", md5(voter_signature).hexdigest())
-        print("[VOTER CERTIFICATE] MD5:", md5(voter_certificate).hexdigest())
+    @staticmethod
+    def is_vote_valid(encrypted_vote : bytes, voter_signature : bytes, voter_certificate : bytes):
+        # print("[VOTER SIGNATURE] MD5:", md5(voter_signature).hexdigest())
+        # print("[VOTER CERTIFICATE] MD5:", md5(voter_certificate).hexdigest())
 
         public_key = RSA.import_key(voter_certificate)
         try:
-            pkcs1_15.new(public_key).verify(Crypto.Hash.SHA256.new(machine_signature), voter_signature)
-            print("[VOTER SIGNATURE] Is valid!")
+            vote_digest = Crypto.Hash.SHA512.new(encrypted_vote).digest()
+            pkcs1_15.new(public_key).verify(Crypto.Hash.SHA256.new(vote_digest), voter_signature)
+            print("[VOTER SIGNATURE] Signature is valid!")
+            return True
         except ValueError:
             print("[VOTER SIGNATURE] Is INVALID!")
+            return False
+
+
+    def vote(self, encrypted_vote : bytes, machine_signature : bytes, voter_signature : bytes, voter_certificate : bytes):
+        print("[VOTE] Voted.")
 
 
 if __name__ == "__main__":

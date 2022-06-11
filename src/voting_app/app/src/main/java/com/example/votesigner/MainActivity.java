@@ -6,13 +6,11 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.Size;
-import android.view.ActionMode;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.camera.core.Camera;
 import androidx.camera.core.CameraSelector;
 import androidx.camera.core.ImageAnalysis;
 import androidx.camera.core.Preview;
@@ -111,7 +109,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }));
 
-        Camera camera = cameraProvider.bindToLifecycle(this, cameraSelector, imageAnalysis, preview);
+        /*Camera camera = */cameraProvider.bindToLifecycle(this, cameraSelector, imageAnalysis, preview);
     }
 
     private void switchToSignVoteActivity()

@@ -68,15 +68,12 @@ class MainApp(tk.Tk):
         self.qr_code = ImageTk.PhotoImage(img)
 
     def encode_vote(self, vote_id):
-        self.encrypted_vote, self.machine_signature = self.voting_machine.encode_vote(
+        self.encrypted_vote, self.machine_signature, vote_digest = self.voting_machine.encode_vote(
             vote_id)
-        data = base64.b64encode(self.machine_signature)
+        data = base64.b64encode(vote_digest)
         self.set_qr_code(data)
 
     def send_vote(self, voter_signature, voter_certificate):
-        voter_signature = base64.b64decode(voter_signature)
-        voter_certificate = base64.b64decode(voter_certificate)
-        
         self.voting_machine.vote(
             self.encrypted_vote, self.machine_signature, voter_signature, voter_certificate)
 
@@ -170,11 +167,15 @@ class ScanQRPage(tk.Frame):
         cap = cv2.VideoCapture(0)
         print("[SCANNER] Scanning for QR code...")
         while True:
-            ret, frame = cap.read()
-            data = VotingMachine.decoder(frame, frame)
+            # time.sleep(0.01)
 
-            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            img = Image.fromarray(gray)
+            ret, frame = cap.read()
+            voter_signature, voter_certificate = VotingMachine.decoder(
+                frame, frame)
+
+            # gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            color_fixed = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            img = Image.fromarray(color_fixed)
             # img.save("test.png")
             img = ImageTk.PhotoImage(img)
 
@@ -187,14 +188,20 @@ class ScanQRPage(tk.Frame):
             label.pack()
 
             self.controller.update()
-            time.sleep(0.01)
 
-            if data is not None:
-                print("[SCANNER] Found QR Code!")
-                self.controller.send_vote(*data.split("|"))
-                self.controller.show_frame(SucessPage)
-                label.destroy()
-                return
+            if voter_signature is None or voter_certificate is None:
+                continue
+
+            print("[SCANNER] Found QR Code!")
+
+            if not VotingMachine.is_vote_valid(self.controller.encrypted_vote, voter_signature, voter_certificate):
+                # TODO(@pciocirlan): send to "invalid signature" page.
+                continue
+
+            self.controller.send_vote(voter_signature, voter_certificate)
+            self.controller.show_frame(SucessPage)
+            label.destroy()
+            return
 
 
 class SucessPage(tk.Frame):
