@@ -57,7 +57,7 @@ class MainApp(tk.Tk):
 
     def set_qr_code(self, data: bytes):
         qr_code = VotingMachine.generate_qr_code(data)
-        qr_code.save('qr_code.png')
+        # qr_code.save('qr_code.png')
 
         # img = Image.open('qr_code.png')
         img = qr_code.get_image()
@@ -71,6 +71,8 @@ class MainApp(tk.Tk):
         self.encrypted_vote, self.machine_signature, vote_digest = self.voting_machine.encode_vote(
             vote_id)
         data = base64.b64encode(vote_digest)
+        with open("vote_example_1.dat", "wb") as fd:
+            fd.write(self.encrypted_vote)
         self.set_qr_code(data)
 
     def send_vote(self, voter_signature, voter_certificate):

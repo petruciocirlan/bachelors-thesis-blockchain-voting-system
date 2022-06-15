@@ -1,11 +1,10 @@
+import requests
 import base64
-from hashlib import md5
-import hashlib
+import json
 
 from Crypto.Signature import pkcs1_15
 from Crypto.PublicKey import RSA
 import Crypto.Hash
-from Pyfhel import Pyfhel, PyCtxt
 import numpy as np
 from PIL import Image
 import pyzbar.pyzbar as pyzbar
@@ -16,49 +15,16 @@ from ballot import Ballot
 
 
 class VotingMachine:
+    MACHINE_KEYS_DIR = "./keys"
+    HE_KEYS_DIR = f"{MACHINE_KEYS_DIR}/he"
+
     def __init__(self) -> None:
         # TODO(@petru): add logger
 
-        self.nonce = 0
-        self.HE = Pyfhel(
-            context_params={'scheme': 'bfv', 'n': 2**14, 't_bits': 24, 'sec': 256})
-
-        with open("machine_key.pub") as fd:
+        with open(f"{self.MACHINE_KEYS_DIR}/machine_key.pub") as fd:
             self.public_key = RSA.import_key(fd.read())
-        with open("machine_key") as fd:
+        with open(f"{self.MACHINE_KEYS_DIR}/machine_key") as fd:
             self.private_key = RSA.import_key(fd.read())
-
-        keys_dir_name = "keys"
-
-        with open(f"{keys_dir_name}/pub.key", "rb") as fd:
-            self.HE.from_bytes_public_key(base64.b64decode(fd.read()))
-        with open(f"{keys_dir_name}/relin.key", "rb") as fd:
-            self.HE.from_bytes_relin_key(base64.b64decode(fd.read()))
-        # with open(f"{keys_dir_name}/sec.key", "rb") as fd:
-        #     self.HE.from_bytes_secret_key(base64.b64decode(fd.read()))
-
-        # Save & restore everything into/from files
-        # ---------------------------
-
-        # self.HE.keyGen()
-        # self.HE.rotateKeyGen()
-        # self.HE.relinKeyGen()
-
-        # with open(f"{keys_dir_name}/pub.key", "wb") as fd:
-        #     fd.write(base64.b64encode(self.HE.to_bytes_public_key()))
-        # with open(f"{keys_dir_name}/sec.key", "wb") as fd:
-        #     fd.write(base64.b64encode(self.HE.to_bytes_secret_key()))
-        # with open(f"{keys_dir_name}/relin.key", "wb") as fd:
-        #     fd.write(base64.b64encode(self.HE.to_bytes_relin_key()))
-
-        # Then we encrypt some data
-        # c = HE.encrypt(np.array([42]))
-        # p = HE.encode(np.array([-1]))
-
-        # print("1. Creating serializable objects")
-        # print(f"  Pyfhel object HE: {HE}")
-        # print(f"  PyCtxt c=HE.encrypt([42]): {c}")
-        # print(f"  PyPtxt p=HE.encode([-1]): {p}")
 
     @staticmethod
     def generate_qr_code(data: bytes):
@@ -82,7 +48,8 @@ class VotingMachine:
             # print(data)
 
             try:
-                assert len(data) == 2, "data should contain exactly the signature and certificate of voter"
+                assert len(
+                    data) == 2, "data should contain exactly the signature and certificate of voter"
                 voter_signature = base64.b64decode(data[0])
                 voter_certificate = base64.b64decode(data[1])
 
@@ -113,6 +80,7 @@ class VotingMachine:
 
     @staticmethod
     def scan_qr_code():
+        # Deprecated.
         cap = cv2.VideoCapture(0)
         print("[WEBCAM] Scanning for QR code...")
         while True:
@@ -120,19 +88,30 @@ class VotingMachine:
             data = VotingMachine.decoder(frame, frame)
             cv2.imshow('Image', frame)
 
-            # TODO(@petru): validate and sign data (transaction)
-
             code = cv2.waitKey(10)
             if code == ord('q'):
                 break
 
-    def encode_vote(self, vote_id : int):
-        arr = np.zeros(Ballot.get_count())
-        arr[vote_id] = 1
-        # arr = np.array([1])
+    def encode_vote(self, vote_id: int):
+        arr = list()
+        for id in range(Ballot.get_count()):
+            if id == vote_id:
+                arr.append(1)
+            else:
+                arr.append(0)
 
-        ciphertext = self.HE.encrypt(arr)
-        encrypted_vote = ciphertext.to_bytes() # (compr_mode='zlib')
+        data = json.dumps(arr)
+        print("Sending vote for encryption process...")
+        print(f"Data: {data}")
+        res = requests.get("http://localhost:3000/encrypt-vote", json={'vote': data})
+        print("Encrypted!")
+
+        encrypted_vote = res.content
+
+        # ciphertext = self.HE.encrypt(arr)
+        # encrypted_vote = ciphertext.to_bytes()  # (compr_mode='zlib')
+
+        print(f"[HE] Encrypted vote size: {len(encrypted_vote)} bytes")
 
         signer = pkcs1_15.new(self.private_key)
         hash_object = Crypto.Hash.SHA512.new(data=encrypted_vote)
@@ -141,33 +120,54 @@ class VotingMachine:
 
         return encrypted_vote, signature, vote_digest
 
-    def decode_vote(self, data):
-        ciphertext = PyCtxt.from_bytes(data)
-        plaintext = self.HE.decrypt(ciphertext)
-        print(plaintext)
-
     @staticmethod
-    def is_vote_valid(encrypted_vote : bytes, voter_signature : bytes, voter_certificate : bytes):
+    def is_vote_valid(encrypted_vote: bytes, voter_signature: bytes, voter_certificate: bytes):
         # print("[VOTER SIGNATURE] MD5:", md5(voter_signature).hexdigest())
         # print("[VOTER CERTIFICATE] MD5:", md5(voter_certificate).hexdigest())
 
         public_key = RSA.import_key(voter_certificate)
         try:
             vote_digest = Crypto.Hash.SHA512.new(encrypted_vote).digest()
-            pkcs1_15.new(public_key).verify(Crypto.Hash.SHA256.new(vote_digest), voter_signature)
+            pkcs1_15.new(public_key).verify(
+                Crypto.Hash.SHA256.new(vote_digest), voter_signature)
             print("[VOTER SIGNATURE] Signature is valid!")
             return True
         except ValueError:
             print("[VOTER SIGNATURE] Is INVALID!")
             return False
 
+    def vote(self, encrypted_vote: bytes, machine_signature: bytes, voter_signature: bytes, voter_certificate: bytes):
+        data = {
+            'vote': encrypted_vote,
+            'machine_signature': machine_signature,
+            'voter_signature': voter_signature,
+            'voter_certificate': voter_certificate # could be skipped
+        }
+        res = requests.get("http://localhost:3000/encrypt-vote", json=data)
 
-    def vote(self, encrypted_vote : bytes, machine_signature : bytes, voter_signature : bytes, voter_certificate : bytes):
-        print("[VOTE] Voted.")
+        # TODO: add interfaces for success/fail cases
+
+        if res.status_code == 200:
+            print("[VOTE] Voted.")
+        else:
+            print("[VOTE] Vote failed.")
 
 
 if __name__ == "__main__":
-    VotingMachine.scan_qr_code()
+    res = requests.get("http://localhost:3000/encrypt-vote", json={'vote': json.dumps([5, 0, 2])})
+    vote_a = res.content
+    
+    res = requests.get("http://localhost:3000/encrypt-vote", json={'vote': json.dumps([2, 3, 2_000_000_000])})
+    vote_b = res.content
+
+    print("Sending vote for testing...")
+    res = requests.get("http://localhost:3000/test-add", json={'vote_a': vote_a.decode('utf-8'), 'vote_b': vote_b.decode('utf-8')})
+    print("Done!")
+
+    obj = json.loads(json.loads(res.content))
+    # print(obj)
+    result = {id: obj[id] for id in obj if obj[id] != 0}
+    print(json.dumps(result, indent=4))
 
     # vm = VotingMachine()
 

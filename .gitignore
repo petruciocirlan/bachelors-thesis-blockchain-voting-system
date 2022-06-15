@@ -3,7 +3,8 @@ Pipfile*
 *.dat
 *.png
 __pycache__/
-*_key*
-*.key
-packages/
 .vscode/
+packages/
+keys/
+node_modules/
+bin/

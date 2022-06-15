@@ -1,9 +1,9 @@
 # TODOs
 
-
 ## Client
 
 ### Mobile Application
+
     - Backend
         - [DONE] Create private/public key pair for user
     - Frontend
@@ -12,9 +12,7 @@
         - [DONE] Display QR code
         - [    ] Option to remember tx id
 
-
 ## Interaction
-
 
 ### Voting machine
 
@@ -27,22 +25,19 @@
     - [    ] Send transaction to blockchain
 
 ### Web Application (optional)
+
     - [    ] Setup server
     - [    ] Frontend
     - [    ] Integrate voting machine logic
 
-
 ## Blockchain
 
-
-    - [    ] Configure blockchain for testing
-    - [    ] Create smart contract for receiving vote transactions
-        - [    ] Check NZIK
-        - [    ] Add vote to homomorphically encrypted tally
-        - [    ] If voting session ended, enable return of tally
-    - [    ] Test
+    - [DONE] Configure blockchain for testing
+    - [DONE] Create smart contract for receiving vote transactions
+        - [DONE] Add vote to homomorphically encrypted tally
+        - [DONE] If voting session ended, enable return of tally
+    - [DONE] Test
     - [    ] Configure blockchain for production
-
 
 ## Maybe later
 
