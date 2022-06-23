@@ -41,13 +41,16 @@ public class SignVoteActivity extends AppCompatActivity {
         Bundle extras = getIntent().getExtras();
         vote = extras.getString("vote");
 
-        signVote();
 
         Button signVoteButton = findViewById(R.id.activity_sign_vote_signButton);
         signVoteButton.setText(R.string.sign_vote);
         signVoteButton.setOnClickListener(v -> {
-            Toast.makeText(getApplicationContext(), vote, Toast.LENGTH_SHORT).show();
+            signVote();
+
+//            Toast.makeText(getApplicationContext(), vote, Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "Signed!", Toast.LENGTH_SHORT).show();
             Log.i(MainActivity.class.getSimpleName(), "Vote signed!");
+
             switchToQRCodeActivity();
         });
     }

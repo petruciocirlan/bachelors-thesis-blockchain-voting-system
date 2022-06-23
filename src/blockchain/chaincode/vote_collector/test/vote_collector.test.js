@@ -161,7 +161,7 @@ describe('Vote Collector Tests', () => {
         });
 
         
-        vote = fs.readFileSync("../../../voting_machine/vote_example.dat", 'utf8');
+        vote = fs.readFileSync("./test/vote_example_2.dat", 'utf8');
     });
 
     describe('Test instantiate', () => {
@@ -196,8 +196,8 @@ describe('Vote Collector Tests', () => {
             let voteSubmission = new VoteCollectorContract();
             voteSubmission.instantiate(transactionContext);
 
-            let vote0 = fs.readFileSync("../../../voting_machine/vote_example_0.dat", 'utf8');
-            let vote1 = fs.readFileSync("../../../voting_machine/vote_example_1.dat", 'utf8');
+            let vote0 = fs.readFileSync("./test/vote_example_0.dat", 'utf8');
+            let vote1 = fs.readFileSync("./test/vote_example_1.dat", 'utf8');
             
             await voteSubmission.submitVote(transactionContext, vote0);
             await voteSubmission.submitVote(transactionContext, vote1);
@@ -208,8 +208,8 @@ describe('Vote Collector Tests', () => {
             let voteSubmission = new VoteCollectorContract();
             voteSubmission.instantiate(transactionContext);
 
-            let vote0 = fs.readFileSync("../../../voting_machine/vote_example_0.dat", 'utf8');
-            let vote1 = fs.readFileSync("../../../voting_machine/vote_example_1.dat", 'utf8');
+            let vote0 = fs.readFileSync("./test/vote_example_0.dat", 'utf8');
+            let vote1 = fs.readFileSync("./test/vote_example_1.dat", 'utf8');
             
             await voteSubmission.submitVote(transactionContext, vote0);
             await voteSubmission.submitVote(transactionContext, vote1);
@@ -229,9 +229,9 @@ describe('Vote Collector Tests', () => {
             let voteSubmission = new VoteCollectorContract();
             voteSubmission.instantiate(transactionContext);
 
-            let vote0 = vote;                                                                   // voted party 0
-            let vote2 = fs.readFileSync("../../../voting_machine/vote_example_0.dat", 'utf8');  // voted party 2
-            let vote4 = fs.readFileSync("../../../voting_machine/vote_example_1.dat", 'utf8');  // voted party 4
+            let vote0 = vote;                                                               // voted party 0
+            let vote2 = fs.readFileSync("./test/vote_example_0.dat", 'utf8');  // voted party 2
+            let vote4 = fs.readFileSync("./test/vote_example_1.dat", 'utf8');  // voted party 4
             
             await voteSubmission.submitVote(transactionContext, vote2);
             await voteSubmission.submitVote(transactionContext, vote4);

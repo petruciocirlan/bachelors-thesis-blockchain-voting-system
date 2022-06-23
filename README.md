@@ -60,3 +60,42 @@ All votes are encrypted unsing Homomorphic encryption, which allows operations s
 Once the voting is over, the parties that hold the PRIVATE KEY pieces would come together to decrypt the final vote tally and publish it publicly, and then destroy the key. Furthermore, the blockchain will be halted permanently and a copy would be made available publicly.
 
 Everyone would be able to check if the voting was done correctly by checking the blockchain and even check if their vote was taken into account. They would reach the same encrypted end result, which they can compare to the tally results made public. Because the votes on the blockchain are encrypted with the government PUBLIC KEY, they can compare the final tally in the blockchain to the final tally published by the government by encrypting the published tally with the PUBLIC KEY.
+
+## Piece of Concept - How to Run
+
+Requirements:
+
+- Blockchain: Docker.
+- Voting Machine: Python (w/ pipenv) and NodeJS.
+- Mobile Device Application: Android Studio and Java (and an Android device).
+
+### Blockchain
+
+Start the network of docker containers to host the blockchain and install and instatiate the vote tallying Smart Contract:
+
+```bash
+bash: cd src/blockchain/client
+bash: ./start.sh
+```
+
+### Voting Machine
+
+Run the Voting Machine NodeJS server used for homomorphic encryption:
+
+```bash
+bash: cd src/voting_machine
+bash: npm install
+bash: npm start
+```
+
+Open a voting session:
+
+```bash
+bash: pipenv install --python 3.9
+bash: pipenv shell
+bash: python ./main.py
+```
+
+### Mobile Device Application
+
+To install the Mobile Device Application, you need to open `src/voting_app` in Android Studio, compile it and pair your phone for installation.

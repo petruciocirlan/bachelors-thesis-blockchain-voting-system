@@ -36,7 +36,7 @@ class MainApp(tk.Tk):
 
         # iterating through a tuple consisting
         # of the different page layouts
-        for F in (VotePage, BallotQRPage, ScanQRPage, SucessPage):
+        for F in (VotePage, BallotQRPage, ScanQRPage, SuccessPage):
 
             frame = F(container, self)
 
@@ -71,7 +71,7 @@ class MainApp(tk.Tk):
         self.encrypted_vote, self.machine_signature, vote_digest = self.voting_machine.encode_vote(
             vote_id)
         data = base64.b64encode(vote_digest)
-        with open("vote_example_1.dat", "wb") as fd:
+        with open("vote_dump.dat", "wb") as fd:
             fd.write(self.encrypted_vote)
         self.set_qr_code(data)
 
@@ -201,26 +201,30 @@ class ScanQRPage(tk.Frame):
                 continue
 
             self.controller.send_vote(voter_signature, voter_certificate)
-            self.controller.show_frame(SucessPage)
+            self.controller.show_frame(SuccessPage)
             label.destroy()
             return
 
 
-class SucessPage(tk.Frame):
+class SuccessPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
 
-        label = tk.Label(self, text="VOTUL A FOST INREGISTRAT CU SUCCES!", width=100,
-                         height=5, background="gray", foreground="white")
-        label.pack(side=tk.TOP, fill="both")
+        # label = tk.Label(self, text="VOTUL A FOST INREGISTRAT CU SUCCES!", width=100,
+        #                  height=5, background="gray", foreground="white")
+        # label.pack(side=tk.TOP, fill="both")
 
         # bottom_frame = tk.Frame(self)
         # bottom_frame.pack(side=tk.BOTTOM, fill="both")
 
-        btn = tk.Button(self, text="RESET", width=50, height=10)
-        btn.pack(anchor=tk.CENTER)
-        btn.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
-        btn.bind('<Button-1>', lambda _: controller.show_frame(VotePage))
+        # btn = tk.Button(self, text="RESET", width=50, height=10)
+        # btn.pack(anchor=tk.CENTER)
+        # btn.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
+        # btn.bind('<Button-1>', lambda _: controller.show_frame(VotePage))
+
+        label = tk.Label(self, text="VOTUL A FOST INREGISTRAT CU SUCCES", width=100, height=10, font=32)
+        label.pack(anchor=tk.CENTER)
+        label.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
 
 
 if __name__ == "__main__":

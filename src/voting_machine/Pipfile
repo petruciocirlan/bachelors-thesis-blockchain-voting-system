@@ -1,0 +1,19 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+opencv-python = "*"
+qrcode = "*"
+numpy = "*"
+pillow = "*"
+pyzbar = "*"
+pycryptodome = "*"
+ecdsa = "*"
+python-socketio = {extras = ["client"], version = "*"}
+
+[dev-packages]
+
+[requires]
+python_version = "3.9"

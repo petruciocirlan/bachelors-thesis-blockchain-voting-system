@@ -1,5 +1,5 @@
 docs/
-Pipfile*
+*.lock
 *.dat
 *.png
 __pycache__/
@@ -7,3 +7,4 @@ __pycache__/
 packages/
 node_modules/
 bin/
+TODO.md

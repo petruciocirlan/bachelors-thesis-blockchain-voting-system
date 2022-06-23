@@ -111,7 +111,7 @@ class VotingMachine:
         # ciphertext = self.HE.encrypt(arr)
         # encrypted_vote = ciphertext.to_bytes()  # (compr_mode='zlib')
 
-        print(f"[HE] Encrypted vote size: {len(encrypted_vote)} bytes")
+        print(f"[HE] Encrypted vote size: {len(encrypted_vote)} (BASE64)")
 
         signer = pkcs1_15.new(self.private_key)
         hash_object = Crypto.Hash.SHA512.new(data=encrypted_vote)
@@ -137,20 +137,21 @@ class VotingMachine:
             return False
 
     def vote(self, encrypted_vote: bytes, machine_signature: bytes, voter_signature: bytes, voter_certificate: bytes):
-        data = {
-            'vote': encrypted_vote,
-            'machine_signature': machine_signature,
-            'voter_signature': voter_signature,
-            'voter_certificate': voter_certificate # could be skipped
-        }
-        res = requests.get("http://localhost:3000/encrypt-vote", json=data)
+        pass
+        # data = {
+        #     'vote': base64.b64encode(encrypted_vote).decode("utf8"),
+        #     'machine_signature': base64.b64encode(machine_signature).decode("utf8"),
+        #     'voter_signature': base64.b64encode(voter_signature).decode("utf8"),
+        #     'voter_certificate': base64.b64encode(voter_certificate).decode("utf8") # could be skipped
+        # }
+        # res = requests.get("http://localhost:3000/encrypt-vote", json=data)
 
-        # TODO: add interfaces for success/fail cases
+        # # TODO: add interfaces for success/fail cases
 
-        if res.status_code == 200:
-            print("[VOTE] Voted.")
-        else:
-            print("[VOTE] Vote failed.")
+        # if res.status_code == 200:
+        #     print("[VOTE] Voted.")
+        # else:
+        #     print("[VOTE] Vote failed.")
 
 
 if __name__ == "__main__":

@@ -96,7 +96,8 @@ public class MainActivity extends AppCompatActivity {
             public void onQRCodeFound(String _qrCode) {
                 qrCode = _qrCode;
 
-                Toast.makeText(getApplicationContext(), qrCode, Toast.LENGTH_SHORT).show();
+//                Toast.makeText(getApplicationContext(), qrCode, Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "Scanned!", Toast.LENGTH_SHORT).show();
                 Log.i(MainActivity.class.getSimpleName(), qrCode);
 
                 cameraProvider.unbindAll();
