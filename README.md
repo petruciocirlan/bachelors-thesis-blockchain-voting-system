@@ -61,7 +61,7 @@ Once the voting is over, the parties that hold the PRIVATE KEY pieces would come
 
 Everyone would be able to check if the voting was done correctly by checking the blockchain and even check if their vote was taken into account. They would reach the same encrypted end result, which they can compare to the tally results made public. Because the votes on the blockchain are encrypted with the government PUBLIC KEY, they can compare the final tally in the blockchain to the final tally published by the government by encrypting the published tally with the PUBLIC KEY.
 
-## Piece of Concept - How to Run
+## Proof of Concept - How to Run
 
 Requirements:
 
